@@ -1,0 +1,10 @@
+container:
+  image: it4addict/cockroach:2.0.5
+  tag: ${tag}
+  env:
+    JOIN: ${joinstring}
+    CAKEY: |-
+$(awk '{printf "      %s\n", $0}' < certs/ca.key)
+  expose:
+    - 8080:8080
+    - 26257:26257

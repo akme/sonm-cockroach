@@ -1,9 +1,29 @@
 #!/usr/bin/env bash
-sonmcli="./sonmcli"
+COCKROACH_VERSION="2.0.5"
+
+if [ -f "./sonmcli" ]; then
+	sonmcli="./sonmcli"
+else
+	sonmcli="sonmcli"
+fi
+
 required_vars=(tag ramsize storagesize cpucores sysbenchsingle sysbenchmulti netdownload netupload price numberofnodes)
 missing_vars=()
 
-COCKROACH_VERSION="2.0.5"
+check_installed() {
+	EXIT=0
+	for cmd in "jq" "xxd" $sonmcli; do
+		if ! [ -x "$(command -v $cmd)" ]; then
+			echo "Error: $cmd is not installed." >&2
+			set EXIT=1
+		fi
+	done
+	if [ "$EXIT" -eq 1 ]; then
+		exit 1
+	fi
+}
+
+check_installed
 
 if [ ! -f ./cockroach ]; then
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then

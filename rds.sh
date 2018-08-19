@@ -345,6 +345,10 @@ generateBidFile() { # tag ramsize storagesize cpucores sysbenchsingle sysbenchmu
 }
 watch() {
 	while deals=($(getDeals)) && orders=($(getOrders)); do
+		if [ $((${#deals[@]} + ${#orders[@]})) -gt "$numberofnodes" ]; then
+			echo "$(datelog)" "Too much deals or orders opened, cleanup with $0 closedeals and $0 cancelorders"
+			exit 1
+		fi
 		while [ ${#deals[@]} -le $numberofnodes ]; do
 			if [ $((${#deals[@]} + ${#orders[@]})) -eq "$numberofnodes" ]; then
 				echo "$(datelog)" "All set, waiting for deals"
@@ -391,7 +395,21 @@ deploy() {
 	done
 
 }
+createuser() {
+	user=$1
+	dbname=$user
+	read -sp "Set password for $user: " password
+	echo
+	echo "Creating user $user"
+	ips=($(getIPofRunningTask))
 
+	sql="CREATE DATABASE IF NOT EXISTS $dbname;
+CREATE USER $user WITH PASSWORD '$password';
+GRANT ALL ON DATABASE $dbname TO $user;"
+	./cockroach sql --certs-dir=certs --host ${ips[0]} <<< $sql
+	echo "You can now connect to cluster with psql:"
+	echo "psql -h ${ips[0]} -p 26257 -U $user --set=sslmode=require"
+}
 usage() {
 	echo "SONM CockroachDB Manager"
 	echo ""
@@ -400,12 +418,14 @@ usage() {
 	echo -e "\\t\\tStop all running tasks"
 	echo -e "\\tclosedeals"
 	echo -e "\\t\\tClose all active deals"
-	echo -e "\\tcreateuser"
+	echo -e "\\tcreateuser <username>"
 	echo -e "\\t\\tCreate user to access via psql"
 	echo -e "\\twatch"
 	echo -e "\\t\\tCreate orders, wait for deals, deploy tasks and watch cluster state"
-	echo -e "\\tsetreplica"
+	echo -e "\\tsetreplica <num_replicas>"
 	echo -e "\\t\\tChange number of replicas (default: 3)"
+	echo -e "\\tgetips"
+	echo -e "\\t\\tGet IPs of all running tasks"
 	echo ""
 }
 while [ "$1" != "" ]; do
@@ -430,7 +450,14 @@ while [ "$1" != "" ]; do
 		;;
 	createuser)
 		shift
-		echo $1 $2
+		createuser $1
+		exit
+		;;
+	getips)
+		ips=($(getIPofRunningTask))
+		for x in "${ips[@]}"; do
+			echo "$x"
+		done
 		exit
 		;;
 	stoptasks)

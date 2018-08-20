@@ -15,7 +15,7 @@ check_installed() {
 	for cmd in "jq" "xxd" $sonmcli; do
 		if ! [ -x "$(command -v $cmd)" ]; then
 			echo "Error: $cmd is not installed." >&2
-			set EXIT=1
+			EXIT=1
 		fi
 	done
 	if [ "$EXIT" -eq 1 ]; then

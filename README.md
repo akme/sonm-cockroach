@@ -96,7 +96,7 @@ In case you want to access cluster with Postgres protocol you need to create use
 ```
 ./rds.sh createuser <username>
 ```
-It will for a password and will show you how to connect with psql, like this:
+It will ask for a password and will show you how to connect with psql, like this:
 ```
 psql -h <any node ip> -p 26257 -U <username> --set=sslmode=require
 ```
@@ -105,12 +105,12 @@ You can get all cluster nodes IP addresses:
 ```
 ./rds.sh getips
 ```
-### Changer replication factor
+### Change replication factor
 By default cluster runs with replication factor 3, that means any data has 3 copies, but for such dynamic environment as fog, you may want to increase this number:
 ```
 $ ./rds.sh setreplica 5 
 ```
-Cluster need some time to make additional copies of data, so be patient to wait until sync ends.
+Cluster needs some time to make additional copies of data, so be patient to wait until sync ends.
 ### Destroy cluster
 When you want to stop using and destroy cluster, you just need to close all deals and cancel orders:
 ```
